@@ -8,6 +8,9 @@ const ENDPOINTS = {
   PROFILE: `${CONFIG.BASE_URL}/api/auth/me`,
   UPDATEPROFILE: (id) => `${CONFIG.BASE_URL}/api/auth/me/${id}`,
   PREDICT: `${CONFIG.BASE_URL}/api/predict`,
+  HISTORY : `${CONFIG.BASE_URL}/api/predictions`,
+  HISTORY_BY_ID: (id) => `${CONFIG.BASE_URL}/api/predictions/${id}`,
+  DELETE_HISTORY: (id) => `${CONFIG.BASE_URL}/api/predictions/${id}`,
 };
 
 // Login user
@@ -133,10 +136,70 @@ export async function predictStuntingGuest({ gender, age, height, weight }) {
   }
 }
 
+export async function getPredictionHistory(token) {
+  try {
+    const response = await fetch(ENDPOINTS.HISTORY, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || "Gagal memuat riwayat");
+    }
+
+    return await response.json(); // { user }
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function getPredictionHistoryById(id, token) {
+  try {
+    const response = await fetch(ENDPOINTS.HISTORY_BY_ID(id), {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || "Gagal memuat riwayat");
+    }
+
+    return await response.json(); // { user }
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function deletePredictionHistoryById(id, token) {
+  try {
+    const response = await fetch(ENDPOINTS.DELETE_HISTORY(id), {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || "Gagal menghapus riwayat");
+    }
+
+    return await response.json(); // { message }
+  } catch (error) {
+    throw error;
+  }
+}
+
 export default {
   login,
   register,
   getProfile,
   updateProfile,
   predictStuntingGuest,
+  getPredictionHistory,
+  getPredictionHistoryById,
+  deletePredictionHistoryById,
 };
