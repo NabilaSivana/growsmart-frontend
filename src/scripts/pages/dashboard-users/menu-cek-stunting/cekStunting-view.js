@@ -1,3 +1,5 @@
+import CekStuntingPresenter from "./cekStunting-presenter.js";
+
 export default class CekStuntingView {
   async render() {
     return `
@@ -12,14 +14,14 @@ export default class CekStuntingView {
                     <p class="text-base sm:text-lg font-medium text-gray-700 mb-4">Pilih gender</p>
                     <div class="grid grid-cols-3 max-sm:grid-cols-1 gap-4">
                     <label for="gender-perempuan" class="gender-option flex flex-col items-center justify-center p-4 sm:p-6 border border-gray-300 rounded-lg cursor-pointer hover:border-[#00A63E] transition duration-200">
-                        <input type="radio" id="gender-perempuan" name="gender" value="perempuan" class="sr-only">
+                        <input type="radio" id="gender-perempuan" name="gender" value="Perempuan" class="sr-only">
                         <svg class="w-16 h-16 sm:w-20 sm:h-20 mb-2 text-gray-500" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"></path>
                         </svg>
                         <span class="text-sm sm:text-base text-gray-500">Perempuan</span>
                     </label>
                     <label for="gender-laki" class="gender-option flex flex-col items-center justify-center p-4 sm:p-6 border border-gray-300 rounded-lg cursor-pointer hover:border-[#00A63E] transition duration-200">
-                        <input type="radio" id="gender-laki" name="gender" value="laki-laki" class="sr-only">
+                        <input type="radio" id="gender-laki" name="gender" value="Laki-laki" class="sr-only">
                         <svg class="w-16 h-16 sm:w-20 sm:h-20 mb-2 text-gray-500" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"></path>
                         </svg>
@@ -183,23 +185,56 @@ export default class CekStuntingView {
 
     const submitBtn = document.getElementById("submit-btn");
 
-    submitBtn.addEventListener("click", () => {
-      const gender = document.querySelector(
-        'input[name="gender"]:checked'
-      ).value;
+    submitBtn.addEventListener("click", async () => {
+      const token = sessionStorage.getItem("token");
+      if (!token) {
+        alert("Anda harus login terlebih dahulu.");
+        return;
+      }
+
+      const gender = document.querySelector('input[name="gender"]:checked')?.value;
+      if (!gender) {
+        alert("Silakan pilih gender terlebih dahulu.");
+        return;
+      }
+
+      const umur = parseInt(document.getElementById("umur-value").textContent);
+      const berat = parseFloat(document.getElementById("berat-value").textContent);
+      const tinggi = parseInt(tinggiSlider.value);
 
       const data = {
-        gender: gender,
-        umur: umur,
-        tinggi: parseInt(tinggiSlider.value),
-        berat: berat,
+        token,
+        gender,
+        age: umur,
+        height: tinggi,
+        weight: berat,
+        // child_id: optional
       };
 
-      console.log("Data yang dikirim:", data);
+      try {
+        const response = await CekStuntingPresenter.check(data);
 
-      alert(
-        `Data terkirim:\nGender: ${data.gender}\nUmur: ${data.umur}\nTinggi: ${data.tinggi} cm\nBerat: ${data.berat} kg`
-      );
+        console.log("Prediction response:", response); // Debug
+
+        if (response.prediction) {
+          const prediction = response.prediction;
+          const message = response.message;
+
+          alert(
+            `${message}\n\nStatus: ${prediction.status}\nConfidence: ${prediction.confidence}%\nRekomendasi: ${prediction.nutrition_recommendation}`
+          );
+        } else {
+          alert(
+            `${response.message}\n\nSilakan cek hasil prediksi terbaru Anda di halaman Riwayat.`
+          );
+          // Opsional: redirect langsung ke halaman riwayat
+          // window.location.href = "/riwayat.html";
+        }
+      } catch (error) {
+        alert("Gagal memproses data. Silakan coba lagi.");
+        console.error(error);
+      }
     });
+
   }
 }

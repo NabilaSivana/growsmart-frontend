@@ -1,43 +1,25 @@
-// src/models/profile-model.js
+// File: /pages/dashboard-users/menu-profile/profile-model.js
 import { getProfile, updateProfile } from "../../../data/api";
 
-export default class ProfileModel {
-  async getUserProfile(token) {
-    try {
-      const data = await getProfile(token);
-      return data;
-    } catch (error) {
-      throw error;
-    }
-  }
-  
-  async updateUserProfile(id, { name, email, password, metadata }, token) {
-    try {
-      const data = await editProfile(
-        id,
-        { name, email, password, metadata },
-        token
-      );
-      return data;
-    } catch (error) {
-      throw error;
-    }
-  }
+const ProfileModel = {
+  async fetchUserProfile(token) {
+    const result = await getProfile(token);
+    return result.user;
+  },
 
-  async changePassword(id, { currentPassword, newPassword }, token) {
-    try {
-      // Using the same endpoint but only sending password-related data
-      const data = await updateProfile(
-        id,
-        {
-          password: newPassword,
-          metadata: { currentPassword }, // Storing current password in metadata if needed
-        },
-        token
-      );
-      return data;
-    } catch (error) {
-      throw error;
-    }
-  }
-}
+  async updateUserProfile({ id, token, email, name, password }) {
+    const data = { name };
+    const payload = {
+      id,
+      token,
+      email,
+      ...(password && { password }),
+      data,
+    };
+
+    const result = await updateProfile(payload);
+    return result.user;
+  },
+};
+
+export default ProfileModel;

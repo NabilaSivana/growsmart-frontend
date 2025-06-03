@@ -7,10 +7,11 @@ const ENDPOINTS = {
   REGISTER: `${CONFIG.BASE_URL}/api/auth/register`,
   PROFILE: `${CONFIG.BASE_URL}/api/auth/me`,
   UPDATEPROFILE: (id) => `${CONFIG.BASE_URL}/api/auth/me/${id}`,
-  PREDICT: `${CONFIG.BASE_URL}/api/predict`,
+  PREDICT: `${CONFIG.BASE_URL}/api/predict`, //untuk guest -> ditampilkan di landing page
   HISTORY : `${CONFIG.BASE_URL}/api/predictions`,
   HISTORY_BY_ID: (id) => `${CONFIG.BASE_URL}/api/predictions/${id}`,
   DELETE_HISTORY: (id) => `${CONFIG.BASE_URL}/api/predictions/${id}`,
+  PREDICTION: `${CONFIG.BASE_URL}/api/predictions`,
 };
 
 // Login user
@@ -136,6 +137,36 @@ export async function predictStuntingGuest({ gender, age, height, weight }) {
   }
 }
 
+// Authenticated prediction (user login required)
+export async function predictStuntingUser({ token, gender, age, height, weight, child_id = null }) {
+  try {
+    const response = await fetch(ENDPOINTS.PREDICTION, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        gender,
+        age,
+        height,
+        weight,
+        ...(child_id && { child_id }), // optional, only added if not null
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || "Prediksi gagal");
+    }
+
+    return await response.json(); // hasil prediksi yang tersimpan
+  } catch (error) {
+    throw error;
+  }
+}
+
+
 export async function getPredictionHistory(token) {
   try {
     const response = await fetch(ENDPOINTS.HISTORY, {
@@ -199,6 +230,7 @@ export default {
   getProfile,
   updateProfile,
   predictStuntingGuest,
+  predictStuntingUser,
   getPredictionHistory,
   getPredictionHistoryById,
   deletePredictionHistoryById,

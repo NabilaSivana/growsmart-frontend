@@ -1,44 +1,32 @@
-// src/presenters/profile-presenter.js
-import ProfileModel from "../menu-profile/profile-model";
+// File: /pages/dashboard-users/menu-profile/profile-presenter.js
+import ProfileModel from "./profile-model";
 
 export default class ProfilePresenter {
   constructor({ view }) {
     this.view = view;
-    this.model = new ProfileModel();
   }
 
-  async loadUserProfile(token) {
+  async loadProfile(token) {
     try {
-      const userProfile = await this.model.getUserProfile(token);
-      this.view.onLoadProfileSuccess(userProfile);
+      const user = await ProfileModel.fetchUserProfile(token);
+      this.view.onLoadProfileSuccess(user);
     } catch (error) {
       this.view.onLoadProfileFailed(error.message);
     }
   }
 
-  async handleEditProfile(id, updatedData, token) {
+  async updateProfile({ id, token, email, name, password }) {
     try {
-      const updatedProfile = await this.model.updateUserProfile(
+      const updatedUser = await ProfileModel.updateUserProfile({
         id,
-        updatedData,
-        token
-      );
-      this.view.onEditProfileSuccess(updatedProfile);
+        token,
+        email,
+        name,
+        password,
+      });
+      this.view.onUpdateProfileSuccess(updatedUser);
     } catch (error) {
-      this.view.onEditProfileFailed(error.message);
-    }
-  }
-
-  async handleChangePassword(id, { currentPassword, newPassword }, token) {
-    try {
-      await this.model.changePassword(
-        id,
-        { currentPassword, newPassword },
-        token
-      );
-      this.view.onChangePasswordSuccess();
-    } catch (error) {
-      this.view.onChangePasswordFailed(error.message);
+      this.view.onUpdateProfileFailed(error.message);
     }
   }
 }
